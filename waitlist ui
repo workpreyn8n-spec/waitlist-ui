@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Join Waitlist</title>
+</head>
+<body>
+
+<h1>Join the Platform 🚀</h1>
+
+<input type="text" id="name" placeholder="Enter your name" /><br><br>
+<input type="email" id="email" placeholder="Enter your email" /><br><br>
+
+<select id="role">
+  <option value="">Select Role</option>
+  <option value="tutor">Tutor</option>
+  <option value="learner">Learner</option>
+</select><br><br>
+
+<button onclick="joinWaitlist()">Join</button>
+
+<p id="status"></p>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, 
+    query, where, getDocs 
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "YOUR_KEY",
+    authDomain: "YOUR_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.joinWaitlist = async function () {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const role = document.getElementById("role").value;
+
+    if (!name || !email || !role) {
+      alert("Fill all fields");
+      return;
+    }
+
+    const waitlistRef = collection(db, "waitlist");
+
+    // 🚫 Prevent duplicate emails
+    const q = query(waitlistRef, where("email", "==", email));
+    const existing = await getDocs(q);
+
+    if (!existing.empty) {
+      document.getElementById("status").innerText =
+        "You're already on the waitlist!";
+      return;
+    }
+
+    await addDoc(waitlistRef, {
+      name: name,
+      email: email,
+      role: role,
+      createdAt: new Date()
+    });
+
+    document.getElementById("status").innerText =
+      "Successfully joined as " + role + " 🎉";
+  };
+</script>
+
+</body>
+</html>
